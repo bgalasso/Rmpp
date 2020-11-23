@@ -1,0 +1,2 @@
+plot.fmean <- function(x, target = 1, plot.type = 'all') {
+}

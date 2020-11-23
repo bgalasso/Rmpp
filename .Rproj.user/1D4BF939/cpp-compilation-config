@@ -1,0 +1,19 @@
+{
+    "args": [
+        "-I/Library/Developer/CommandLineTools/usr/lib/clang/12.0.0/include",
+        "-I/usr/local/include",
+        "-I/Library/Developer/CommandLineTools/usr/bin/../include/c++/v1",
+        "-I/Library/Developer/CommandLineTools/usr/lib/clang/12.0.0/include",
+        "-I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include",
+        "-I/Library/Developer/CommandLineTools/usr/include",
+        "-I/usr/local/Cellar/r/4.0.3/lib/R/include",
+        "-DNDEBUG",
+        "-I/usr/local/opt/gettext/include",
+        "-I/usr/local/opt/readline/include",
+        "-I/usr/local/include",
+        "-fPIC"
+    ],
+    "pch": "",
+    "is_cpp": false,
+    "hash": "1605698584"
+}

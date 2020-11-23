@@ -1,0 +1,27 @@
+useDynLib(Rmpp, .registration = TRUE)
+
+useDynLib(Rmpp)
+# .registration = TRUE
+import(ggplot2)
+import(parallel)
+import(pbmcapply)
+import(stats)
+import(xts)
+
+importFrom("grDevices", "colorRampPalette")
+importFrom("utils", "setTxtProgressBar", "txtProgressBar")
+
+export(bmpp, bmpp.default,
+       kmpp, kmpp.default,
+       rwarp, rwarp.default,
+       mpp)
+
+## REGISTER S3 METHODS
+S3method(bmpp, default)
+S3method(plot, bmpp)
+S3method(kmpp, default)
+S3method(plot, kmpp)
+S3method(rwarp, default)
+S3method(plot, rwarp)
+S3method(plot, mpp)
+

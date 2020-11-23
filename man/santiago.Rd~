@@ -1,0 +1,50 @@
+\encoding{UTF-8}
+\name{santiago}
+\alias{santiago}
+\title{Santiago Temperature Data}
+\description{
+  The data consist of average daily air temperatures (in Fahrenheit
+  scale, rounded to the nearest integer) of Santiago (Chile) from April,
+  1990 to March, 2017.
+}
+\usage{santiago}
+\format{
+  A dataframe with 10126 observations on one variables.
+}
+\references{
+  Galasso, B., Zemel, Y. and de Carvalho, M. (2019). Bayesian
+  semiparametric modelling of phase-varying point processes. arXiv:
+  1812.09607.
+}
+\source{
+  NOAA's National Centers for Environmental Information (NCEI).
+}
+\examples{
+data(santiago)
+###Data as a time series
+require(xts)
+Temp <- xts(santiago[[2]],order.by = santiago[[1]])
+N <- floor(length(Temp)/365)
+###Changing years from april to march (instead january to december)
+Temp_Monthly = split(Temp,f='months')
+Temp_Yearly <- list()
+for(j in 1:N){
+  aux=c()
+  for(i in 1:12){
+    aux=c(aux,coredata(Temp_Monthly[[4+(i-1)+(j-1)*12]]))
+  }
+  Temp_Yearly[[j]] = aux
+}
+
+###Calculating the peaks
+Thresholds <-  list()
+for(i in 1:N){
+  threshold1 <- quantile(Temp_Yearly[[i]],p=.05)
+  threshold2 <- quantile(Temp_Yearly[[i]],p=.95)
+  Thresholds[[i]] <- c(which(Temp_Yearly[[i]] <= threshold1),which(Temp_Yearly[[i]] >= threshold2))
+}
+
+class(Thresholds) <- 'mpp'
+plot(Thresholds)
+}
+\keyword{datasets}

@@ -1,0 +1,13 @@
+Package: Rmpp
+Date: 2020-11-18
+Title: Modelling Phase-Varying Point Processes
+Version: 1.0
+Authors@R: c(person("Bastian", "Galasso", role = c("aut", "cre"), email = "bigalass@mat.uc.cl"), person("Yoav", "Zemel", role = "aut"), person("Miguel", "de Carvalho", role = "aut"), person("Alejandro", "Jara", role = "ctb"))
+Author: Bastian Galasso [aut, cre], Yoav Zemel [aut], Miguel de Carvalho [aut], Alejandro Jara  [ctb]
+Maintainer: Bastian Galasso <bigalass@mat.uc.cl>
+Description: Functions to model and fit multiple phase-varying point processes (Zemel and Panaretos (2016) <doi:10.1214/15-AOS1387>; Galasso, Zemel, and de Carvalho (2020) <arXiv:1812.09607>).
+License: GPL(>=3)
+Encoding: UTF-8
+LazyData: true
+NeedsCompilation: yes
+Imports: ggplot2, grDevices, parallel, pbmcapply, stats, xts

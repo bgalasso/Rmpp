@@ -1,0 +1,155 @@
+##  ========================================================================  ##
+##  B. Galasso-Diaz, Y. Zemel, and M. de Carvalho                      	      ##
+##  Copyright (C) 2020                                                        ##
+##  ------------------------------------------------------------------------  ##
+##  This program is free software; you can redistribute it and/or modify      ##
+##  it under the terms of the GNU General Public License as published by      ##
+##  the Free Software Foundation; either version 2 of the License, or         ##
+##  (at your option) any later version.                                       ##
+##                                                                            ##
+##  This program is distributed in the hope that it will be useful,           ##
+##  but WITHOUT ANY WARRANTY; without even the implied warranty of            ##
+##  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             ##
+##  GNU General Public License for more details.                              ##
+##                                                                            ##
+##  You should have received a copy of the GNU General Public License         ##
+##  along with this program; if not, a copy is available at                   ##
+##  http://www.r-project.org/Licenses/                                        ##
+##  ========================================================================  ##
+
+##  ========================================================================  ##
+##    Define objects                                                          ##
+##  ------------------------------------------------------------------------  ##
+
+rwarp <- function(n, type = "wang-gasser",
+                  params = list(lambda = 1, J = 2, alpha = 1, epsilon = 0.05))                  
+    UseMethod("rwarp")
+
+rwarp.default <- function(n, type = "wang-gasser", 
+                          params = list(lambda = 1, J = 2, alpha = 1,
+                                        epsilon = 0.05)) {
+    ## Input validation
+    if(n != round(n) | n < 2)
+        stop('n must be a positive integer larger than 1')
+    if(!(type %in% c("bend", "dp", "wang-gasser")))
+        stop('type is not a valid option')
+    if(type == "wang-gasser") {
+        lambda <- params$lambda
+        J <- params$J
+        if(J != round(J) | J < 2)
+            stop('J must be a positive integer larger than 1')
+        if (lambda <= 0)
+            stop('lambda must be positive')   
+    }
+    if(type == "dp") {
+        alpha <- params$alpha
+        epsilon <- params$epsilon
+        if(alpha <= 0)
+            stop('alpha must be positive')
+        if(epsilon > 1 | epsilon <= 0)
+            stop('epsilon must be in (0, 1) for type = "dp"')        
+    }
+    ## Initialize variables
+    a <- c()
+    if(type == "bend") {
+        part <- sample(1:2, n - 1, replace = TRUE)
+        for(i in 1:(n - 1))
+            a[i] <- ifelse(part[i] == 1,
+                           runif(1, (n - 3) /
+                                    (2 * (n - 1)), (n - 2) / (2 * (n - 1))),
+                           runif(1, n /
+                                    (2 * (n - 1)), (n + 1) / (2 * (n - 1))))
+        b <- sample(1:2, n - 1, replace = TRUE)        
+        T <- function(t, i) {
+            if(i != round(i) | i <= 0 | i > n)
+                stop('i must be an integer between 1 and n')                
+            if(i < n)
+                return(t - (a[i] - 1 / 2) * sin(t * pi * b[i]) / (pi * b[i]))
+            else 
+                return(t + sum((a - 1 / 2) * sin(t * pi * b) / (pi * b)))  
+        }
+        T <- Vectorize(T)        
+    }
+    if(type == "dp") {        
+        ## Initialize variables
+        N <- rpois(1, -alpha * log(epsilon)) + 1
+        X <- matrix(NA, nrow = n, ncol = N)
+        v <- rep(1, N)
+        pi <- numeric(N)            
+        ## Simulate from centring distribution 
+        for (i in 1:n) 
+            X[i, ] <- runif(N)
+        ## Construct random warps maps
+        T <- function(t, i) {
+            if(i != round(i) | i <= 0 | i > n)
+                stop('i must be an integer between 1 and n')                
+            if(N == 1)
+                return(approxfun(X[i, ], 1, method = "constant",
+                                 yleft = 0, yright = 1, f = 0,
+                                 ties = "ordered")(t))
+            if(N > 1) {
+                v[1: N - 1] <- rbeta(N - 1, 1, alpha)
+                cumv <- cumprod(1 - v)
+                pi[1] <- v[1]
+                for(h in 2:N)
+                    pi[h] <- v[h] * cumv[h - 1]
+                Xi <- sort(X[i, ])
+                o <- order(X[i, ])
+                xx <- X[i, o]
+                pi <- pi[o]                
+                return(approxfun(xx, cumsum(pi), method = "constant",
+                                 yleft = 0, yright = 1, f = 0,
+                                 ties = "ordered")(t))
+            }            
+        }
+    }
+    if(type == "wang-gasser") {
+        K <- matrix(rpois(J * n, lambda = lambda) *
+                    sign(runif(J * n, min = -1, max = 1)), ncol = J)
+        u <- replicate(J - 1, runif(n))         
+        T <- function(t, i) {
+            if(i != round(i) | i <= 0 | i > n)
+                stop('i must be an integer between 1 and n')                            
+            zeta <- function(t, k) {
+                if (k == 0)
+                    return(t)
+                else
+                    return(t - sin(pi * t * k) / (abs(k) * pi))
+            }
+            zeta <- Vectorize(zeta)
+            if(J == 2) {
+                return(u[i, 1] * zeta(t, K[i, 1]) +
+                       (1 - u[i, J - 1]) * zeta(t, K[i, J]))
+            }
+            else if (J > 2) {
+                uo <- sort(u[i, ])
+                return(uo[1] * zeta(t, K[i, 1]) +
+                       zeta(t, K[i, 2:(J - 1)]) %*% diff(uo) + 
+                       (1 - uo[J - 1]) * zeta(t, K[i, J]))
+            }
+        }
+        T <- Vectorize(T)
+    }
+    ## Organize and return outputs
+    outputs <- list(T = T, n = n)
+    class(outputs) <- "rwarp"
+    return(outputs)
+}
+
+plot.rwarp <- function(x, identity = TRUE, xlab = "t",
+                       ylab = "Warp function", main = "", ...) {
+    cat('Plotting...', '\n')
+    chart <- ggplot(data = data.frame(t = seq(0, 1, by = 0.1)), aes(t)) +
+        ggtitle(main) +
+        labs(x = xlab, y = ylab) +
+        coord_cartesian(xlim = c(0, 1), ylim = c(0, 1))
+    for(i in 1:x$n) {
+        chart <- chart + stat_function(fun = x$T, args = list(i = i),
+                                       alpha = .3, colour = i)
+    }        
+    if(identity == TRUE)
+        chart <- chart + geom_abline(slope = 1, intercept = 0,
+                                     alpha = .1, size = 2) 
+    plot(chart)
+    cat('DONE', '\n')
+}
