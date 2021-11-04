@@ -4,7 +4,7 @@ The Rmpp package implements Bayesian semiparametric inferences for modelling, fi
 ```
 bmpp(xw, support = 1, grid = seq(0, 1, length = 2^8), prior, mcmc, parallel = TRUE)
 ```
-This function implements the model developed in Galasso et al (2022, Electronic Journal of Statistics). Some comments on how to use this  function are in order. First, multiple point process data should be given in a list whose entries correspond to a single point process; for example let's simulate some data according to the latter structure: 
+This function implements the model developed in Galasso et al (2020+, arXiv:1812.09607). Some comments on how to use this function are in order. First, multiple point process data should be given in a list whose entries correspond to a single point process.   Here is an example with of data simulated according to this structure: 
 ```
 # Simulate the original point process
 n <- 3
@@ -20,19 +20,19 @@ xw <- list()
 for(i in 1:n)
     xw[[i]] <- warp$T(x[[i]],i)
 ```
-Thus, `xw` is our multiple point process in a list form. Next, we need to set the prior and mcmc parameters; following the same specifications as in Galasso et al (2022), here we consider:  
+Thus, `xw` is our multiple point process in a list form. Next, we need to set the prior and mcmc parameters; following the same specifications as in Galasso et al (2020+), here we consider:  
 ```
 mcmc <- list(nburn = 500, nsave = 4500, nskip = 0, ndisplay = 100)
 prior <- list(aa0 = 2, ab0 = 2, kmax = 1000, a0 = 1, b0 = 1)
 ```
-Finally, we need to define if we can run this in parallel or not. By default, our algorithm runs using `#cores - 1` (`parallel = TRUE`); if  `parallel = FALSE`, then our algorithm runs in a single-core.
-To run our method, you need just execute the following command:
+The function implements parallel computing and by default (with `parallel = TRUE`) uses `#cores - 1` cores.   If  `parallel = FALSE`, then the algorithm runs using a single core.
+To run our method simply use
 ```
 fit <- bmpp(xw = xw, prior = prior, mcmc = mcmc)
 ```
-The output was stored in the object `fit` which has as output the estimated warp maps and registered point processes, among other.
+The output is stored in the object `fit` that contains the estimated warp maps, the registered point processes, and more.
 
-To visualize the output, you may use the `plot` function which has a specific parameter `type` when the object to plot is of the class `bmpp`; the following options can be used to obtain different targets (respectively Fréchet mean, distribution function, warp maps, and multiple point process):
+To visualise the output, one may use the `plot` function which has a specific parameter `type` when the object to plot is of the class `bmpp`; the following options can be used to obtain different targets (respectively Fréchet mean, distribution function, warp maps, and multiple point process):
 ```
 plot(fit, type = 'fmean')
 plot(fit, type = 'cdf')       ## try also: plot(fit, type = 'cdf', choose = 1)
